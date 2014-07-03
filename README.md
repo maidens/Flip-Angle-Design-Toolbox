@@ -1,10 +1,12 @@
 Flip-Angle-Design-Toolbox
 =========================
 
-Tools for designing optimal variable flip angle schemes for hyperpolarized carbon-13 magnetic resonance spectroscopy. 
+Tools for designing optimal flip angle schemes for hyperpolarized carbon-13 magnetic resonance spectroscopy. 
 
 The Flip Angle Design Toolbox provides a framework for specifying a linear differential equation model 
+
 dx/dt = A x(t) + B u(t) 
+
 to describe magnetization dynamics and tools for maximum likelihood and least-squares estimation of unknown model parameters. Toolbox also provides routines to generate optimal flip angle schemes for design objectives including: 
 * maximizing signal-to-noise ratio 
 * and providing minimum-variance estimates of model parameters. 
