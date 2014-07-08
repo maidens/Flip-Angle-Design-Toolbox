@@ -24,7 +24,7 @@ function [y, y_true] = generate_data(model, thetas)
         model.known_parameter_values]));
    
     % compute "true" trajectories of model 
-    y_true = trajectories(thetas, Ad_nom, Bd_nom, u_fun, model.TR, model.N);
+    y_true = trajectories(thetas, Ad_nom, Bd_nom, u_fun, model.x0_nom, model.TR, model.N);
     
     if strcmp(model.noise_type, 'None')
         

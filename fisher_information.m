@@ -19,7 +19,7 @@ function I_Schur = fisher_information(thetas, model, phi)
     
     % get input and state trajectories 
     y = trajectories(thetas, model.Ad_nom, model.Bd_nom, model.u_fun, ...
-        model.TR, model.N);
+        model.x0_nom, model.TR, model.N);
     x = y(1:model.n, :);
     u_val = y(model.n+1:model.n+model.m, :);
     
@@ -31,14 +31,10 @@ function I_Schur = fisher_information(thetas, model, phi)
     for i=1:length(p)
         DAi = model.sensitivity_Ad(:, :, i);  
         DBi = model.sensitivity_Bd(:, :, i); 
-        for t=1:model.N
+        DxDp(:, 1, i) = model.sensitivity_x0(:, i); 
+        for t=1:model.N-1
             DuDp(t, i) = model.sensitivity_u(t, i);
-            if (t == 1)
-                DxDp(:, t+1, i) = ...
-                    DAi * diag(cos(thetas(t, 1:model.n))) * x(:, t) ...
-                    + DBi * u_val(t) ...
-                    + model.Bd_nom * DuDp(t, i); 
-            elseif (t < model.N)
+            if (t < model.N)
                 DxDp(:, t+1, i) = ...
                     DAi * diag(cos(thetas(t, 1:model.n))) * x(:, t) ...
                     + model.Ad_nom * diag(cos(thetas(t, 1:model.n))) * DxDp(:, t, i) ...

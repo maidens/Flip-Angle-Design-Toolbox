@@ -11,6 +11,7 @@ classdef linear_exchange_model
         A     % continuous-time dynamics matrix 
         B     % continuous-time input matrix 
         u     % input function 
+        x0    % initial condition 
         TR    % repetition time 
         N     % number of acquisitions 
         n     % dimension of state
@@ -31,11 +32,13 @@ classdef linear_exchange_model
         Ad_nom         % discretized dynamics matrix evaluated at nominal parameter values
         Bd_nom         % discretized imput matrix evaluated at nominal parameter values
         u_fun          % matlab function handle for computing numeric values of input
+        x0_nom         % numeric value of initial condition 
         
         sensitivities_computed = false % flag to determine whether sensitivities were computed
         sensitivity_Ad % sensitivity of Ad with respect to model parameters
         sensitivity_Bd % sensitivity of Ad with respect to model parameters
         sensitivity_u  % sensitivity of u with respect to model parameters
+        sensitivity_x0 % sensitivity of x0 with respect to model parameters
     end
     
     methods
@@ -57,13 +60,16 @@ classdef linear_exchange_model
             model.Ad_sym = expm(model.TR*model.A);
             model.Bd_sym = model.A\((model.Ad_sym - eye(size(model.A)))*model.B);
 
-            % evaluate system matrices and input at nominal parameter values 
+            % evaluate system matrices, input and initial state at nominal parameter values 
             model.Ad_nom = double(subs(model.Ad_sym, [model.parameters_of_interest, model.nuisance_parameters, model.known_parameters], ...
                 [model.parameters_of_interest_nominal_values, model.nuisance_parameters_nominal_values, model.known_parameter_values]));
             model.Bd_nom = double(subs(model.Bd_sym, [model.parameters_of_interest, model.nuisance_parameters, model.known_parameters], ...
                 [model.parameters_of_interest_nominal_values, model.nuisance_parameters_nominal_values, model.known_parameter_values]));
             model.u_fun = matlabFunction(subs(model.u,[model.parameters_of_interest, model.nuisance_parameters, model.known_parameters], ...
                 [model.parameters_of_interest_nominal_values, model.nuisance_parameters_nominal_values, model.known_parameter_values]));
+            model.x0_nom = double(subs(model.x0, [model.parameters_of_interest, model.nuisance_parameters, model.known_parameters], ...
+                [model.parameters_of_interest_nominal_values, model.nuisance_parameters_nominal_values, model.known_parameter_values]));
+                 
             % set flag 
             model.discretized = true; 
             
@@ -101,6 +107,11 @@ classdef linear_exchange_model
                 for i = 1:length(parameters) 
                     model.sensitivity_u(k, i) = double(subs(diff(model.u, parameters(i)), [parameters_all, t], [parameters_all_vals, k*model.TR])); 
                 end
+            end
+            
+            model.sensitivity_x0 = zeros(model.n, length(parameters)); 
+            for i=1:length(parameters)
+                model.sensitivity_x0(:, i) = double(subs(diff(model.x0, parameters(i)), parameters_all, parameters_all_vals)); 
             end
             
             % set flag 

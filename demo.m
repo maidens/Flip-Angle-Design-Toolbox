@@ -18,6 +18,8 @@ syms R1P R1L R1A kPL kPA kTRANS
 syms t0 alpha_1 beta_1 A0 
 % define noise parameters 
 syms sigma_1 sigma_2 sigma_3
+% define initial state parameters
+syms P0 L0 
 
 % parameters of interest 
 % (those for which we wish to compute an estimate with minimal variance) 
@@ -27,13 +29,13 @@ model.parameters_of_interest_nominal_values = [0.05 0.04];
 % nuisance parameters
 % (those parameters that are unknown but whose estimates we only care about
 % insofar as they allow us to estamate the parameters of interest) 
-model.nuisance_parameters = [alpha_1 beta_1 A0];
-model.nuisance_parameters_nominal_values = [ 2  5  1]; 
+%model.nuisance_parameters = [alpha_1 beta_1 A0];
+%model.nuisance_parameters_nominal_values = [ 2  5  1]; 
 
 % known parameters
 % (those whose values are assumed to be known constants) 
-model.known_parameters = [R1P R1L R1A t0]; 
-model.known_parameter_values = [1/35 1/30 1/25 0];  
+model.known_parameters = [R1P R1L R1A t0 P0 L0]; 
+model.known_parameter_values = [1/35 1/30 1/25 0 0 0];  
 
 % define system matrices for differential eq. dx/dt = A*x(t) + B*u(t)
 
@@ -51,6 +53,9 @@ model.B = [kTRANS; 0];
 % define input function shape  
 model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); 
 model.u = @(t) 10*(heaviside(t) - heaviside(t - 15)); 
+
+% define initial condition 
+model.x0 = [P0; L0]; 
 
 % define repetition time
 model.TR = 2; 

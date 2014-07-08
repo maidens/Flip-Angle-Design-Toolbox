@@ -17,7 +17,7 @@ function thetas_opt = optimal_flip_angle_design(model, ...
     if strcmp(design_criterion,'totalSNR')
         % define objective function for total SNR 
         obj = @(thetas) -sum(sum(trajectories(thetas, model.Ad_nom, ...
-            model.Bd_nom, model.u_fun, model.TR, model.N)));
+            model.Bd_nom, model.u_fun, model.x0_nom, model.TR, model.N)));
         
         % initialize optimization problem 
         if nargin < 4
