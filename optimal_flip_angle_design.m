@@ -37,7 +37,16 @@ function thetas_opt = optimal_flip_angle_design(model, ...
         
         if strcmp(model.noise_type,'Rician')
             
+            % compute function phi 
             phi = compute_phi(); 
+            
+            % check that model structure is identifiable 
+            information = det(fisher_information(initial_thetas_value, model, phi)); 
+            if information == 0 || isnan(information)
+                error('Fisher information matrix is singular. Try ensuring that model structure (A, B, u) = (%s, %s, %s) is identifiable for parameter vector p = [%s %s] or choose a different initial value for the flip angles.', char(model.A), char(model.B), char(model.u), char(model.parameters_of_interest), char(model.nuisance_parameters)) 
+            end
+            
+            % define objective function 
             if strcmp(design_criterion,'D-optimal')
                 obj_coarse = @(thetas) ...
                     -log(abs(det(fisher_information(thetas, model, phi)))); 
@@ -51,17 +60,20 @@ function thetas_opt = optimal_flip_angle_design(model, ...
                 error('this should not be reachable -- possibly error with design_criterion handling')
             end
             
+            % set options for optimization problem 
             if nargin < 4
                 options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, ...
                     'Display', 'iter'); 
             end
+            
+            % solve optimization problem 
             thetas_opt = fminunc(obj_coarse, initial_thetas_value, ...
                 options);
                        
         else
             
             error(['Design criterion "', design_criterion, ...
-                '" is not implemented for noise of type "', ...
+                '" is not valid for noise of type "', ...
                 model.noise_type, '"'])
         end
                 
