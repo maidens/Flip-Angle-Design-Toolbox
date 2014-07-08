@@ -4,7 +4,7 @@
 %   Flip Angle Design Toolbox 
 %   John Maidens (maidens@eecs.berkeley.edu) 
 %   June 2014 
-
+ 
 clear all
 close all
 clc
@@ -86,8 +86,8 @@ end
 
 % design optimal flip angles for maximum likelihood estimation
 initial_thetas_value = ones(model.N, model.n + model.m);
-%thetas_SNR = optimal_flip_angle_design(model, 'totalSNR', initial_thetas_value); 
-thetas = optimal_flip_angle_design(model, design_criterion, initial_thetas_value); 
+options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, 'Display', 'iter'); 
+thetas = optimal_flip_angle_design(model, design_criterion, initial_thetas_value, options); 
 
 % plot optimal flip angles 
 figure 
@@ -105,7 +105,7 @@ axis([1 model.N 0 100])
 % generate simulated trajecories
 [y, y_true] = generate_data(model, thetas); 
 
-% choose loss function 
+% choose loss function for parameter fit 
 goodness_of_fit_criterion = 'maximum-likelihood'; 
 % goodness_of_fit_criterion = 'least-squares'
 

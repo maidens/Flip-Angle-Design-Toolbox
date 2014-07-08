@@ -1,5 +1,5 @@
 function thetas_opt = optimal_flip_angle_design(model, ...
-    design_criterion, initial_thetas_value)
+    design_criterion, initial_thetas_value, options)
     %FUNCTION OPTIMAL_FLIP_ANGLE_DESIGN performs numerical optimization to generate optimal flip angle scheme
     %   Choice of design criteria: 
     %       * 'totalSNR'  (maximize sum of state and input variables over all time) 
@@ -20,8 +20,10 @@ function thetas_opt = optimal_flip_angle_design(model, ...
             model.Bd_nom, model.u_fun, model.TR, model.N)));
         
         % initialize optimization problem 
-        options = optimset('MaxFunEvals', 50000, 'MaxIter', 1000, ...
-            'Display', 'iter'); 
+        if nargin < 4
+            options = optimset('MaxFunEvals', 50000, 'MaxIter', 1000, ...
+                'Display', 'iter'); 
+        end
         %initial_thetas_value = ones(model.N, 3); 
         
         % perform optimization 
@@ -48,9 +50,11 @@ function thetas_opt = optimal_flip_angle_design(model, ...
             else
                 error('this should not be reachable -- possibly error with design_criterion handling')
             end
-                
-            options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, ...
-                'Display', 'iter'); 
+            
+            if nargin < 4
+                options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, ...
+                    'Display', 'iter'); 
+            end
             thetas_opt = fminunc(obj_coarse, initial_thetas_value, ...
                 options);
                        
