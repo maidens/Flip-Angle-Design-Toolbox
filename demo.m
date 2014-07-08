@@ -9,6 +9,15 @@ clear all
 close all
 clc
 
+% check that required toolboxes are installed 
+v = ver;
+toolboxes = setdiff({v.Name}, 'MATLAB'); 
+if ~strncmp('Optimization Toolbox', toolboxes, 20)
+    error('Flip Angle Design Toolbox requires MATLAB Optimization Toolbox')
+elseif ~strncmp('Symbolic Math Toolbox', toolboxes, 21)
+    error('Flip Angle Design Toolbox requires MATLAB Symbolic Math Toolbox')
+end
+
 % initialize model object 
 model = linear_exchange_model; 
 
@@ -29,8 +38,8 @@ model.parameters_of_interest_nominal_values = [0.05 0.04];
 % nuisance parameters
 % (those parameters that are unknown but whose estimates we only care about
 % insofar as they allow us to estamate the parameters of interest) 
-%model.nuisance_parameters = [alpha_1 beta_1 A0];
-%model.nuisance_parameters_nominal_values = [ 2  5  1]; 
+model.nuisance_parameters = [alpha_1 beta_1 A0];
+model.nuisance_parameters_nominal_values = [ 2  5  1]; 
 
 % known parameters
 % (those whose values are assumed to be known constants) 
@@ -51,8 +60,8 @@ model.A = [ -kPL-R1P  0   ;
 model.B = [kTRANS; 0]; 
 
 % define input function shape  
-model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); 
-model.u = @(t) 10*(heaviside(t) - heaviside(t - 15)); 
+model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1);  %gamma-variate input  
+% model.u = @(t) 10*(heaviside(t) - heaviside(t - 15));       % boxcar input 
 
 % define initial condition 
 model.x0 = [P0; L0]; 
@@ -91,9 +100,10 @@ if ~model.sensitivities_computed ...
 end
 
 % design optimal flip angles for maximum likelihood estimation
-initial_thetas_value = ones(model.N, model.n + model.m);
+initial_thetas_value = pi/2*ones(model.N, model.n + model.m);
 options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, 'Display', 'iter'); 
-thetas = optimal_flip_angle_design(model, design_criterion, initial_thetas_value, options); 
+thetas = optimal_flip_angle_design(model, design_criterion, ...
+    initial_thetas_value, options); 
 
 % plot optimal flip angles 
 figure 

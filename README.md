@@ -17,3 +17,6 @@ The MATLAB script DEMO.m provides a demonstration of the toolbox's capabilities.
 * a function optimal_flip_angle_design for computing optimal flip angle schemes 
 * a function parameter_estimation for computing maximum likelihood or least-squares estimates of unknown model parameters. 
 
+This toolbox requires that the following MATLAB toolboxes are installed:
+* Optimization Toolbox
+* Symbolic Math Toolbox 
