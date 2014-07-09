@@ -9,14 +9,13 @@ clear all
 close all
 clc
 
-% check that required toolboxes are installed 
-v = ver;
-toolboxes = setdiff({v.Name}, 'MATLAB'); 
-if ~strncmp('Optimization Toolbox', toolboxes, 20)
-    error('Flip Angle Design Toolbox requires MATLAB Optimization Toolbox')
-elseif ~strncmp('Symbolic Math Toolbox', toolboxes, 21)
-    error('Flip Angle Design Toolbox requires MATLAB Symbolic Math Toolbox')
-end
+% verify that required toolboxes are installed 
+check_system_requirements(); 
+
+
+
+
+%% Specify system model 
 
 % initialize model object 
 model = linear_exchange_model; 
@@ -48,16 +47,16 @@ model.known_parameter_values = [1/35 1/30 1/25 0 0 0];
 
 % define system matrices for differential eq. dx/dt = A*x(t) + B*u(t)
 
+% two-site exchange model 
+model.A = [ -kPL-R1P  0   ;
+             kPL     -R1L];   
+model.B = [kTRANS; 0]; 
+
 % three-site exhange model 
 % model.A = [ -kPL-kPA-R1P  0    0;
 %             kPL         -R1L  0;
 %             kPA          0   -R1A];   
 % model.B = [kTRANS; 0; 0]; 
-
-% two-site exchange model 
-model.A = [ -kPL-R1P  0   ;
-             kPL     -R1L];   
-model.B = [kTRANS; 0]; 
 
 % define input function shape  
 model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); % gamma-variate input  
@@ -65,6 +64,7 @@ model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); % gamma-variate inp
 
 % define initial condition 
 model.x0 = [P0; L0]; 
+% model.x0 = [P0; L0; 0]; 
 
 % define repetition time
 model.TR = 2; 
@@ -75,17 +75,15 @@ model.N = 25;
 % choose noise type
 model.noise_type = 'Rician';
 % model.noise_type = 'None';
-if model.n == 3
-    model.noise_parameters = [0.01 0.01 0.01 0.1]; 
-elseif model.n == 2
-    model.noise_parameters = [0.01 0.01 0.1]; 
-end
+
+model.noise_parameters = [0.01 0.01 0.1]; 
+% model.noise_parameters = [0.01 0.01 0.01 0.1]; 
 
 % choose design criterion 
-% design_criterion = 'totalSNR'; 
 design_criterion = 'D-optimal'; 
 % design_criterion = 'E-optimal'; 
 % design_criterion = 'T-optimal'; 
+% design_criterion = 'totalSNR'; 
 
 % discretize model (doing this in advance makes things run faster) 
 model = discretize(model);  
@@ -99,9 +97,16 @@ if ~model.sensitivities_computed ...
     model = sensitivities(model);  
 end
 
-% design optimal flip angles for maximum likelihood estimation
+
+
+
+%% Design optimal flip angles
+
+% specify optimization start point and options for MATLAB optimization toolbox 
 initial_thetas_value = pi/2*ones(model.N, model.n + model.m);
-options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, 'Display', 'iter'); 
+options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, 'Display', 'iter');
+
+% perform optimization 
 thetas = optimal_flip_angle_design(model, design_criterion, ...
     initial_thetas_value, options); 
 
@@ -111,15 +116,21 @@ plot(thetas.*180./pi, 'x-')
 title('Optimal flip angle scheme') 
 xlabel('acquisition number')
 ylabel('flip angle (degrees)')
-if model.n == 2
-    legend('Pyr', 'Lac', 'AIF')
-else
-    legend('Pyr', 'Lac', 'Ala', 'AIF') 
-end
+legend('Pyr', 'Lac', 'AIF')
 axis([1 model.N 0 100])
+
+
+
+
+%% Generate simulated data from model 
 
 % generate simulated trajecories
 [y, y_true] = generate_data(model, thetas); 
+
+
+
+
+%% Estimate model parameters from data 
 
 % choose loss function for parameter fit 
 goodness_of_fit_criterion = 'maximum-likelihood'; 
@@ -135,10 +146,8 @@ plot(model.TR*(1:model.N), y', 'o-')
 title('Simulated data') 
 xlabel('time (s)')
 ylabel('measured magnetization (au)')
-if model.n == 2
-    legend('Pyr', 'Lac', 'AIF')
-else
-    legend('Pyr', 'Lac', 'Ala', 'AIF') 
-end
+legend('Pyr', 'Lac', 'AIF')
+
+
 
 
