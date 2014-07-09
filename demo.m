@@ -60,8 +60,8 @@ model.A = [ -kPL-R1P  0   ;
 model.B = [kTRANS; 0]; 
 
 % define input function shape  
-model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1);  %gamma-variate input  
-% model.u = @(t) 10*(heaviside(t) - heaviside(t - 15));       % boxcar input 
+model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); % gamma-variate input  
+% model.u = @(t) 10*rectangularPulse(0, 15, t);              % boxcar input 
 
 % define initial condition 
 model.x0 = [P0; L0]; 
