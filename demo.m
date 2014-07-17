@@ -127,6 +127,14 @@ axis([1 model.N 0 100])
 % generate simulated trajecories
 [y, y_true] = generate_data(model, thetas); 
 
+% plot simulated trajectories 
+figure
+plot(model.TR*(1:model.N), y', 'o-')
+title('Simulated data') 
+xlabel('time (s)')
+ylabel('measured magnetization (au)')
+legend('Pyr', 'Lac', 'AIF')
+
 
 
 
@@ -139,14 +147,6 @@ goodness_of_fit_criterion = 'maximum-likelihood';
 % fit parameters values to simulated data 
 [parameters_of_interest_est, nuisance_parameters_est] ...
     = parameter_estimation(y, model, goodness_of_fit_criterion, thetas) 
-
-% plot simulated trajectories and corresponding fit 
-figure
-plot(model.TR*(1:model.N), y', 'o-')
-title('Simulated data') 
-xlabel('time (s)')
-ylabel('measured magnetization (au)')
-legend('Pyr', 'Lac', 'AIF')
 
 
 

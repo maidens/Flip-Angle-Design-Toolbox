@@ -1,4 +1,4 @@
-function thetas_opt = optimal_flip_angle_design(model, ...
+function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
     design_criterion, initial_thetas_value, options)
     %FUNCTION OPTIMAL_FLIP_ANGLE_DESIGN performs numerical optimization to generate optimal flip angle scheme
     %   Choice of design criteria: 
@@ -27,7 +27,7 @@ function thetas_opt = optimal_flip_angle_design(model, ...
         %initial_thetas_value = ones(model.N, 3); 
         
         % perform optimization 
-        thetas_opt = fminunc(obj, initial_thetas_value, options);
+        [thetas_opt, objective_value] = fminunc(obj, initial_thetas_value, options);
           
         
     % Optimal flip angle design for Fisher information design criteria
@@ -67,7 +67,7 @@ function thetas_opt = optimal_flip_angle_design(model, ...
             end
             
             % solve optimization problem 
-            thetas_opt = fminunc(obj_coarse, initial_thetas_value, ...
+            [thetas_opt, objective_value] = fminunc(obj_coarse, initial_thetas_value, ...
                 options);
                        
         else
