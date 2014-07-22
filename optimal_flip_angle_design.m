@@ -5,7 +5,8 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
     %       * 'totalSNR'  (maximize sum of state and input variables over all time) 
     %       * 'D-optimal' (maximize determinant of information matrix)
     %       * 'E-optimal' (maximize smalles eigenvalues of information matrix)
-    %       * 'T-optimal' (maximize trace of information matrix) 
+    %       * 'T-optimal' (maximize trace of information matrix)
+    %       * 'A-optimal' (minimize trace of inverse information matrix)
     % 
     %   Flip Angle Design Toolbox 
     %   John Maidens (maidens@eecs.berkeley.edu)
@@ -33,6 +34,7 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
     % Optimal flip angle design for Fisher information design criteria
     elseif strcmp(design_criterion,'D-optimal') || ...
             strcmp(design_criterion,'E-optimal') || ...
+            strcmp(design_criterion,'A-optimal') || ...
             strcmp(design_criterion,'T-optimal')
         
         if strcmp(model.noise_type,'Rician')
@@ -56,6 +58,9 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
             elseif strcmp(design_criterion,'T-optimal')
                 obj_coarse = @(thetas) ...
                     -trace(fisher_information(thetas, model, phi));
+            elseif strcmp(design_criterion,'A-optimal')
+                obj_coarse = @(thetas) ...
+                    trace(inv(fisher_information(thetas, model, phi)));
             else
                 error('this should not be reachable -- possibly error with design_criterion handling')
             end
