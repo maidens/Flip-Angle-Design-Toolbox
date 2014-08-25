@@ -32,7 +32,7 @@ syms P0 L0
 % parameters of interest 
 % (those for which we wish to compute an estimate with minimal variance) 
 model.parameters_of_interest = [kPL kTRANS]; 
-model.parameters_of_interest_nominal_values = [0.05 0.04]; 
+model.parameters_of_interest_nominal_values = [0.02 0.04]; 
 
 % nuisance parameters
 % (those parameters that are unknown but whose estimates we only care about
@@ -106,7 +106,7 @@ end
 
 % specify optimization start point and options for MATLAB optimization toolbox 
 initial_thetas_value = pi/2*ones(model.N, model.n + model.m);
-options = optimset('MaxFunEvals', 5000, 'MaxIter', 200, 'Display', 'iter');
+options = optimset('MaxFunEvals', 10000, 'MaxIter', 200, 'Display', 'iter');
 
 % perform optimization 
 thetas = optimal_flip_angle_design(model, design_criterion, ...
@@ -121,35 +121,37 @@ ylabel('flip angle (degrees)')
 legend('Pyr', 'Lac', 'AIF')
 axis([1 model.N 0 100])
 
+thetas_opt = thetas(:, 1:2); 
+save('flip_angles.mat', 'thetas_opt')
 
-
-
-%% Generate simulated data from model 
-
-% generate simulated trajecories
-[y, y_true] = generate_data(model, thetas); 
-
-% plot simulated trajectories 
-figure
-plot(model.TR*(1:model.N), y', 'o-')
-title('Simulated data') 
-xlabel('time (s)')
-ylabel('measured magnetization (au)')
-legend('Pyr', 'Lac', 'AIF')
-
-
-
-
-%% Estimate model parameters from data 
-
-% choose loss function for parameter fit 
-goodness_of_fit_criterion = 'maximum-likelihood'; 
-% goodness_of_fit_criterion = 'least-squares'
-
-% fit parameters values to simulated data 
-[parameters_of_interest_est, nuisance_parameters_est] ...
-    = parameter_estimation(y, model, goodness_of_fit_criterion, thetas) 
-
-
-
+% 
+% 
+% %% Generate simulated data from model 
+% 
+% % generate simulated trajecories
+% [y, y_true] = generate_data(model, thetas); 
+% 
+% % plot simulated trajectories 
+% figure
+% plot(model.TR*(1:model.N), y', 'o-')
+% title('Simulated data') 
+% xlabel('time (s)')
+% ylabel('measured magnetization (au)')
+% legend('Pyr', 'Lac', 'AIF')
+% 
+% 
+% 
+% 
+% %% Estimate model parameters from data 
+% 
+% % choose loss function for parameter fit 
+% goodness_of_fit_criterion = 'maximum-likelihood'; 
+% % goodness_of_fit_criterion = 'least-squares'
+% 
+% % fit parameters values to simulated data 
+% [parameters_of_interest_est, nuisance_parameters_est] ...
+%     = parameter_estimation(y, model, goodness_of_fit_criterion, thetas) 
+% 
+% 
+% 
 
