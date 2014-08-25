@@ -46,6 +46,7 @@ model.known_parameters = [R1P R1L R1A t0 P0 L0];
 model.known_parameter_values = [1/35 1/30 1/25 0 0 0];  
 
 % define system matrices for differential eq. dx/dt = A*x(t) + B*u(t)
+% the input should be the same chemical compound as the first state 
 
 % two-site exchange model 
 model.A = [ -kPL-R1P  0   ;
@@ -105,7 +106,7 @@ end
 %% Design optimal flip angles
 
 % specify optimization start point and options for MATLAB optimization toolbox 
-initial_thetas_value = pi/2*ones(model.N, model.n + model.m);
+initial_thetas_value = pi/2*ones(model.N, model.n);
 options = optimset('MaxFunEvals', 10000, 'MaxIter', 200, 'Display', 'iter');
 
 % perform optimization 

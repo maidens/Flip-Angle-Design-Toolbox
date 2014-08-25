@@ -17,6 +17,10 @@ function I_Schur = fisher_information(thetas, model, phi)
         model = sensitivities(model); 
     end
     
+    % assign thetas from first compartment to input as well
+    thetas = [thetas thetas(:, 1)]; 
+    
+    
     % get input and state trajectories 
     y = trajectories(thetas, model.Ad_nom, model.Bd_nom, model.u_fun, ...
         model.x0_nom, model.TR, model.N);
