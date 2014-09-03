@@ -43,24 +43,24 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
             phi = compute_phi(); 
             
             % check that model structure is identifiable 
-            information = det(fisher_information(initial_thetas_value, model, phi)); 
+            information = det(fisher_information(initial_thetas_value*model.flip_angle_input_matrix', model, phi)); 
             if information == 0 || isnan(information)
                 error('Fisher information matrix is singular. Try ensuring that model structure (A, B, u) = (%s, %s, %s) is identifiable for parameter vector p = [%s %s] or choose a different initial value for the flip angles.', char(model.A), char(model.B), char(model.u), char(model.parameters_of_interest), char(model.nuisance_parameters)) 
             end
-            
+
             % define objective function 
             if strcmp(design_criterion,'D-optimal')
                 obj_coarse = @(thetas) ...
-                    -log(abs(det(fisher_information(thetas, model, phi)))); 
+                    -log(abs(det(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)))); 
             elseif strcmp(design_criterion,'E-optimal')
                 obj_coarse = @(thetas) ...
-                    -min(eig(fisher_information(thetas, model, phi)));
+                    -min(eig(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)));
             elseif strcmp(design_criterion,'T-optimal')
                 obj_coarse = @(thetas) ...
-                    -trace(fisher_information(thetas, model, phi));
+                    -trace(fisher_information(thetas*model.flip_angle_input_matrix', model, phi));
             elseif strcmp(design_criterion,'A-optimal')
                 obj_coarse = @(thetas) ...
-                    trace(inv(fisher_information(thetas, model, phi)));
+                    trace(inv(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)));
             else
                 error('this should not be reachable -- possibly error with design_criterion handling')
             end

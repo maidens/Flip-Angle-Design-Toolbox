@@ -77,8 +77,29 @@ model.N = 25;
 model.noise_type = 'Rician';
 % model.noise_type = 'None';
 
-model.noise_parameters = [0.01 0.01 0.1]; 
+% choose noise magnitude  
+model.noise_parameters = [0.01 0.01 0.01]; 
 % model.noise_parameters = [0.01 0.01 0.01 0.1]; 
+
+% choose flip angle input matrix 
+%   This allows you to set linear equality constraints on the flip angles
+%   for example setting: 
+%
+%      model.flip_angle_input_matrix = [1 0; 
+%                                       0 1; 
+%                                       1 0]; 
+%
+%   fixes the first and third flip angles to be equal one another. 
+%   The attribute model.flip_angle_input_matrix must have m+n rows. 
+%   Consider defaulting to
+% 
+%      model.flip_angle_input_matrix = eye(model.m + model.n) 
+% 
+%   if you wish to compute all flip angles separately. 
+model.flip_angle_input_matrix = [1 0; 
+                                 0 1; 
+                                 1 0]; 
+% model.flip_angle_input_matrix = eye(model.m + model.n)                              
 
 % choose design criterion 
 design_criterion = 'D-optimal'; 
@@ -107,7 +128,7 @@ end
 
 % specify optimization start point and options for MATLAB optimization toolbox 
 initial_thetas_value = pi/2*ones(model.N, model.n);
-options = optimset('MaxFunEvals', 10000, 'MaxIter', 200, 'Display', 'iter');
+options = optimset('MaxFunEvals', 5000, 'MaxIter', 100, 'Display', 'iter');
 
 % perform optimization 
 thetas = optimal_flip_angle_design(model, design_criterion, ...
@@ -125,34 +146,34 @@ axis([1 model.N 0 100])
 thetas_opt = thetas(:, 1:2); 
 save('flip_angles.mat', 'thetas_opt')
 
-% 
-% 
-% %% Generate simulated data from model 
-% 
-% % generate simulated trajecories
-% [y, y_true] = generate_data(model, thetas); 
-% 
-% % plot simulated trajectories 
-% figure
-% plot(model.TR*(1:model.N), y', 'o-')
-% title('Simulated data') 
-% xlabel('time (s)')
-% ylabel('measured magnetization (au)')
-% legend('Pyr', 'Lac', 'AIF')
-% 
-% 
-% 
-% 
-% %% Estimate model parameters from data 
-% 
-% % choose loss function for parameter fit 
-% goodness_of_fit_criterion = 'maximum-likelihood'; 
-% % goodness_of_fit_criterion = 'least-squares'
-% 
-% % fit parameters values to simulated data 
-% [parameters_of_interest_est, nuisance_parameters_est] ...
-%     = parameter_estimation(y, model, goodness_of_fit_criterion, thetas) 
-% 
-% 
-% 
+
+
+%% Generate simulated data from model 
+
+% generate simulated trajecories
+[y, y_true] = generate_data(model, thetas); 
+
+% plot simulated trajectories 
+figure
+plot(model.TR*(1:model.N), y', 'o-')
+title('Simulated data') 
+xlabel('time (s)')
+ylabel('measured magnetization (au)')
+legend('Pyr', 'Lac', 'AIF')
+
+
+
+
+%% Estimate model parameters from simulated data 
+
+% choose loss function for parameter fit 
+goodness_of_fit_criterion = 'maximum-likelihood'; 
+% goodness_of_fit_criterion = 'least-squares'
+
+% fit parameters values to simulated data 
+[parameters_of_interest_est, nuisance_parameters_est] ...
+    = parameter_estimation(y, model, goodness_of_fit_criterion, thetas) 
+
+
+
 

@@ -25,6 +25,7 @@ classdef linear_exchange_model
         known_parameter_values                % vector of corresponding nominal values
         noise_type                            % string selection noise type
         noise_parameters                      % parameters defining noise shape 
+        flip_angle_input_matrix               % matrix specifying linear transformation of flip angles 
         
         discretized = false % flag to determine whether discretization has occured 
         Ad_sym         % discretized dynamics matrix (symbolic)
@@ -41,6 +42,7 @@ classdef linear_exchange_model
         sensitivity_x0 % sensitivity of x0 with respect to model parameters
     end
     
+    
     methods
         function model = set.A(model, A_val)  % set method for A       
             if size(A_val, 1) ~= size(A_val, 2)
@@ -53,6 +55,12 @@ classdef linear_exchange_model
         function model = set.B(model, B_val)  % set method for B       
             model.B = B_val; 
             model.m = size(B_val, 2); 
+        end
+        function model = set.flip_angle_input_matrix(model, mat) % set method for flip_angle_input_matrix
+            if size(mat, 1) ~= model.m + model.n 
+                error('linear_exchange_model.flip_angle_input_matrix must have a number of rows equal to the number of inputs plus the number of states') 
+            end
+            model.flip_angle_input_matrix = mat; 
         end
         function model = discretize(model)    % compute discretization 
             
