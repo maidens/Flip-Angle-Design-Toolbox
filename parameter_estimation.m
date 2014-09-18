@@ -15,7 +15,8 @@ function [parameters_of_interest_est, nuisance_parameters_est] ...
         
         % perform least-squares fit 
         options = optimset('MaxFunEvals', 5000, 'MaxIter', 5000); 
-        obj = @(p) least_squares_objective(p, y, thetas*model.flip_angle_input_matrix', model); 
+        % obj = @(p) least_squares_objective(p, y, thetas*model.flip_angle_input_matrix', model); 
+        obj = @(p) least_squares_objective(p, y, thetas, model); 
         p_opt = lsqnonlin(obj, ...
             [model.parameters_of_interest_nominal_values, ...
             model.nuisance_parameters_nominal_values], [], [], options);
@@ -31,11 +32,13 @@ function [parameters_of_interest_est, nuisance_parameters_est] ...
             
             % perform maximum-likelihood fit 
             options = optimset('MaxFunEvals', 5000, 'MaxIter', 5000); 
-            %obj = @(p) negative_log_likelihood_rician(p, y, thetas*model.flip_angle_input_matrix', model); 
-            obj = @(p) negative_log_likelihood_rician(p, y, thetas*model.flip_angle_input_matrix', model); 
-            p_opt = fminunc(obj, ...
-                [model.parameters_of_interest_nominal_values, ...
-                model.nuisance_parameters_nominal_values], options);
+            obj = @(p) negative_log_likelihood_rician(p, y, thetas*model.flip_angle_input_matrix', model);
+            
+            % initial point 
+            p_init =  [model.parameters_of_interest_nominal_values, ...
+                model.nuisance_parameters_nominal_values]; 
+
+            p_opt = fminunc(obj, p_init, options);
 
             % unpack estimates 
             l = length(model.parameters_of_interest_nominal_values); 
