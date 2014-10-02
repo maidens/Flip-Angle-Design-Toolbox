@@ -15,7 +15,7 @@ function thetas_opt = constant_optimal_flip_angle_design(model, ...
        
         
     % Optimal flip angle design for Fisher information design criteria
-    if strcmp(design_criterion,'D-optimal') 
+    if strcmp(design_criterion,'D-optimal') || strcmp(design_criterion,'E-optimal') ||strcmp(design_criterion,'A-optimal') 
            
         if strcmp(model.noise_type,'Rician')
             
@@ -33,6 +33,12 @@ function thetas_opt = constant_optimal_flip_angle_design(model, ...
                 obj_coarse = @(theta) ...
                     -log(abs(det(fisher_information(theta*ones(model.N, model.n + model.m), model, phi)))); 
             end
+            
+            if strcmp(design_criterion,'E-optimal')
+                obj_coarse = @(theta) ...
+                    -max(eig(fisher_information(theta*ones(model.N, model.n + model.m), model, phi))); 
+            end
+            
             
             % set options for optimization problem 
             if nargin < 4

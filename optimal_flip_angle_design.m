@@ -1,5 +1,5 @@
-function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
-    design_criterion, initial_thetas_value, options)
+function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model, ...
+    design_criterion, initial_q_value, options)
     %FUNCTION OPTIMAL_FLIP_ANGLE_DESIGN performs numerical optimization to generate optimal flip angle scheme
     %   Choice of design criteria: 
     %       * 'totalSNR'  (maximize sum of state and input variables over all time) 
@@ -17,7 +17,7 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
     % Optimal flip angle design for total SNR design criterion 
     if strcmp(design_criterion,'totalSNR')
         % define objective function for total SNR 
-        obj = @(thetas) -sum(sum(trajectories(thetas, model.Ad_nom, ...
+        obj = @(q) -sum(sum(trajectories(model.flip_angle_input_matrix*q, model.Ad_nom, ...
             model.Bd_nom, model.u_fun, model.x0_nom, model.TR, model.N)));
         
         % initialize optimization problem 
@@ -28,8 +28,8 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
         %initial_thetas_value = ones(model.N, 3); 
         
         % perform optimization 
-        [thetas_opt, objective_value] = fminunc(obj, initial_thetas_value, options);
-          
+        [q_opt, objective_value] = fminunc(obj, initial_q_value, options);
+        thetas_opt = model.flip_angle_input_matrix * q_opt; 
         
     % Optimal flip angle design for Fisher information design criteria
     elseif strcmp(design_criterion,'D-optimal') || ...
@@ -43,24 +43,24 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
             phi = compute_phi(); 
             
             % check that model structure is identifiable 
-            information = det(fisher_information(initial_thetas_value*model.flip_angle_input_matrix', model, phi)); 
+            information = det(fisher_information(model.flip_angle_input_matrix*initial_q_value, model, phi)); 
             if information == 0 || isnan(information)
                 error('Fisher information matrix is singular. Try ensuring that model structure (A, B, u) = (%s, %s, %s) is identifiable for parameter vector p = [%s %s] or choose a different initial value for the flip angles.', char(model.A), char(model.B), char(model.u), char(model.parameters_of_interest), char(model.nuisance_parameters)) 
             end
 
             % define objective function 
             if strcmp(design_criterion,'D-optimal')
-                obj_coarse = @(thetas) ...
-                    -log(abs(det(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)))); 
+                obj_coarse = @(q) ...
+                    -log(abs(det(fisher_information(model.flip_angle_input_matrix*q, model, phi)))); 
             elseif strcmp(design_criterion,'E-optimal')
-                obj_coarse = @(thetas) ...
-                    -min(eig(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)));
+                obj_coarse = @(q) ...
+                    -min(eig(fisher_information(model.flip_angle_input_matrix*q, model, phi)));
             elseif strcmp(design_criterion,'T-optimal')
-                obj_coarse = @(thetas) ...
-                    -trace(fisher_information(thetas*model.flip_angle_input_matrix', model, phi));
+                obj_coarse = @(q) ...
+                    -trace(fisher_information(model.flip_angle_input_matrix*q, model, phi));
             elseif strcmp(design_criterion,'A-optimal')
-                obj_coarse = @(thetas) ...
-                    trace(inv(fisher_information(thetas*model.flip_angle_input_matrix', model, phi)));
+                obj_coarse = @(q) ...
+                    trace(inv(fisher_information(model.flip_angle_input_matrix*q, model, phi)));
             else
                 error('this should not be reachable -- possibly error with design_criterion handling')
             end
@@ -72,9 +72,9 @@ function [thetas_opt, objective_value] = optimal_flip_angle_design(model, ...
             end
             
             % solve optimization problem 
-            [thetas_opt, objective_value] = fminunc(obj_coarse, initial_thetas_value, ...
+            [q_opt, objective_value] = fminunc(obj_coarse, initial_q_value, ...
                 options);
-                       
+            thetas_opt = model.flip_angle_input_matrix * q_opt;            
         else
             
             error(['Design criterion "', design_criterion, ...

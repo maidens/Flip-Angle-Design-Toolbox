@@ -1,30 +1,31 @@
 function [ phi ] = compute_phi(  )
     %FUNCTION COMPUTE_PHI computes integral phi required for Fisher information
-    %   For large x, integral is difficult to compute numerically 
-    %   Thus we use the fact that phi is approximately 1 for large x
+    %   Since phi will be called many times, we compute its value at points
+    %   on a logarithmically spaced grid then use interpolation to evaluate
+    %   it when needed. This provides significant speedup in the
+    %   optimization. For large x, integral is difficult to compute 
+    %   numerically so we use the fact that phi is approximately 1 for 
+    %   large x
     % 
     %   Flip Angle Design Toolbox 
     %   John Maidens (maidens@eecs.berkeley.edu)
     %   June 2014 
     
      % function to integrate with respect to y
-     f =  @(y, z) 1/z*y^2 * log(besseli(0, y*z)) * exp(-0.5*(z^2+y^2)) ...
-         *((y^2 - 3)*besseli(1, z*y) ...
-         - 0.5*y*z*(besseli(0, z*y) + besseli(2, z*y))); 
-
-     % upper limit of integration 
-     % must be chosen small enough that besseli does not return infinity
-     % but large enough that integral from ymax to infinity is negligible 
-     ymax = 50; 
+     f = @(y, z) y^3*besseli(1,z*y,1)^2/besseli(0,z*y,1)*exp(-(z^2 -2*z*y+ y^2)/2);
+     % This is equal to x^3*besseli(1,s*x)^2/besseli(0,s*x)*exp(-(s^2 + x^2)/2)
+        %   but scales better for large s*x 
+        %   see MATLAB documentation for besseli(nu, Z, 1)
+        
      
      % points z at which to integrate 
-     zvals = linspace(0.00000001, 20, 500); 
+     % zvals = linspace(0.00000001, 20, 500); 
+     num_z = 1000; 
+     zvals = [0 logspace(-2, 2, num_z)]; 
      
-     % set number of integrals to compute
-     % must be chosen large enough that phi(zvals(index_max)) has almost 
-     % converged to 1 but small enough that integral from ymax to infinity
-     % is negligible     
-     index_max = 350; 
+     % for i > index_max we set phi_vals equal to 1 to ensure that
+     %      lim_z->Inf phi(z) = 1 
+     index_max = num_z-10; 
      
      % compute phi
      phi_vals = zeros(length(zvals), 1); 
@@ -33,18 +34,13 @@ function [ phi ] = compute_phi(  )
          h = @(y) f(y , z); 
          if i <= index_max
            % compute phi by computing integral from 0 to ymax 
-           phi_vals(i) = integral(h, 0, ymax, 'ArrayValued', true) ...
+           phi_vals(i) = integral(h, 0, Inf, 'ArrayValued', true) ...
                - zvals(i)^2; 
          else
-           % for values of z too large, just set phi(z) = 1
+           % for large, just set phi(z) = 1
            phi_vals(i) = 1; 
          end
      end
-     
-     % plot phi_vals to check that output is correct 
-     % plot(zvals, phi_vals)
-     % xlabel('SNR')
-     % ylabel('\phi')
 
      % create function that interpolates between comput
      phi = griddedInterpolant(zvals, phi_vals); 

@@ -1,4 +1,4 @@
-function [y, x, u] = trajectories(thetas, Ad, Bd, u_fun, x0, TR, N)
+function [y, x] = trajectories(thetas, Ad, Bd, C, D, u, x0, N)
     %FUNCTION TRAJECTORIES computes trajectories of the model 
     %   Not meant to be public, only called from within toolbox functions 
     % 
@@ -7,17 +7,20 @@ function [y, x, u] = trajectories(thetas, Ad, Bd, u_fun, x0, TR, N)
     %   June 2014 
     
     n = size(Ad, 1); 
+    m = size(C, 1); 
     x = zeros(n, N); 
+    y = zeros(m, N); 
 
-    % compute input and state trajectories 
-    u = u_fun(TR*(1:N));
-    x(:, 1) = diag(cos(thetas(1,1:n))) * x0; 
-    for k=1:N-1
-        x(:, k+1) = Ad * diag(cos(thetas(k+1,1:n))) * x(:, k) + Bd * u(k); 
+    % compute state trajectories 
+    x(:, 1) = x0; 
+    for t=1:N-1
+        x(:, t+1) = Ad * diag(cos(thetas(:, t))) * x(:, t) + Bd * u(:, t);
+    end
+    % compute output trajectories 
+    for t=1:N
+        y(:, t) = C * diag(sin(thetas(:, t))) * x(:, t) + D * u(:, t); 
     end
     
-    % concatenate state and input trajectories 
-    y = sin(thetas').*[x; u];
 
 end
 

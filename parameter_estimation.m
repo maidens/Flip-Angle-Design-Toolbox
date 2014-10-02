@@ -32,12 +32,12 @@ function [parameters_of_interest_est, nuisance_parameters_est] ...
             
             % perform maximum-likelihood fit 
             options = optimset('MaxFunEvals', 5000, 'MaxIter', 5000); 
-            obj = @(p) negative_log_likelihood_rician(p, y, thetas*model.flip_angle_input_matrix', model);
+            obj = @(p) negative_log_likelihood_rician(p, y, thetas, model);
             
             % initial point 
             p_init =  [model.parameters_of_interest_nominal_values, ...
                 model.nuisance_parameters_nominal_values]; 
-
+            val_init = obj(p_init)
             p_opt = fminunc(obj, p_init, options);
 
             % unpack estimates 
