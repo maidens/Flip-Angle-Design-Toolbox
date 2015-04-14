@@ -9,11 +9,13 @@ function obj = least_squares_objective(p, y, thetas, model)
     l = length(model.parameters_of_interest_nominal_values);
     model.parameters_of_interest_nominal_values = p(1:l);
     model.nuisance_parameters_nominal_values = p(l+1:end); 
+    model = discretize(model); 
     
     % compute model trajectories with given parameter values
     [~, y_true] = generate_data(model, thetas); 
     
     % return difference between measured data and computed trajectories 
     obj = y - y_true;
+    % obj = obj(:); 
     
 end
