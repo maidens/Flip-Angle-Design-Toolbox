@@ -1,4 +1,4 @@
-function I_Schur = fisher_information(thetas, model, phi)
+function [I_Schur, I_full] = fisher_information(thetas, model, phi)
     %FUNCTION FISHER_INFORMATION Computes information matrix for a particular flip angle scheme 
     %   Returns Schur complement that corresponds to eliminating parameters
     %   stored in model.nuisance_parameters
@@ -72,21 +72,21 @@ function I_Schur = fisher_information(thetas, model, phi)
     end
     
     % compute information matrix 
-    I = zeros(length(p)); 
+    I_full = zeros(length(p)); 
     for i=1:length(p)
         for j=1:i
-            I(i, j) = sum(sum( ...
+            I_full(i, j) = sum(sum( ...
                 diag(model.noise_parameters.^(-1)) ...
                 * (DyDp(:, :, i) .* DyDp(:, :, j) .* phi_of_x) ...
                 )); 
-            I(j, i) = I(i, j); 
+            I_full(j, i) = I_full(i, j); 
         end
     end
 
     % compute Schur complement corresponding to parameters of interest 
     len = length(model.parameters_of_interest); 
-    I_Schur = I(1:len, 1:len) ...
-       - I(1:len, len+1:end)*(I(len+1:end, len+1:end)\I(len+1:end, 1:len)); 
+    I_Schur = I_full(1:len, 1:len) ...
+       - I_full(1:len, len+1:end)*(I_full(len+1:end, len+1:end)\I_full(len+1:end, 1:len)); 
 
 end
 
