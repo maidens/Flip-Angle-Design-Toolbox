@@ -18,8 +18,8 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
     if strcmp(design_criterion,'totalSNR')
         % define objective function for total SNR 
         obj = @(q) -sum(sum(trajectories(model.flip_angle_input_matrix*q, model.Ad_nom, ...
-            model.Bd_nom, model.u_fun, model.x0_nom, model.TR, model.N)));
-        
+            model.Bd_nom, model.C_nom, model.D_nom, model.u_fun(model.TR*0:model.N), model.x0_nom, model.N)));
+
         % initialize optimization problem 
         if nargin < 4
             options = optimset('MaxFunEvals', 50000, 'MaxIter', 1000, ...
