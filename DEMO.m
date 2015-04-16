@@ -36,38 +36,39 @@ model.parameters_of_interest_nominal_values = [0.02 0.04];
 % (those parameters that are unknown but whose estimates we only care about
 % insofar as they allow us to estamate the parameters of interest) 
 model.nuisance_parameters = [alpha_1 beta_1 A0];
-model.nuisance_parameters_nominal_values = [ 2  5  1]; 
+model.nuisance_parameters_nominal_values = [2       5      1 ]; 
 
 % known parameters
 % (those whose values are assumed to be known constants) 
-model.known_parameters = [R1P R1L t0 P0 L0]; 
-model.known_parameter_values = [1/35 1/30 0 0 0];  
+model.known_parameters       = [R1P  R1L  t0 P0 L0 ]; 
+model.known_parameter_values = [1/30 1/30  0  0  0 ];  
 
 % define system matrices for differential eq. 
 %   dx/dt = A*x(t) + B*u(t)
 %    y(t) = C*x(t) + D*u(t) 
 
 % two-site exchange model with input feedthrough 
-model.A = [ -kPL-R1P  0  ;
-             kPL     -R1L];  
+model.A = [ -kTRANS-R1P     0      0  ;
+             kTRANS     -kPL-R1P   0  ;
+                0          kPL   -R1L];  
          
-model.B = [kTRANS; 0]; 
+model.B = [1; 0; 0]; 
 
-model.C = [1 0; 
-           0 1; 
-           0 0]; 
+model.C = [1 0 0; 
+           0 1 0; 
+           0 0 1]; 
        
 model.D = [0; 
            0;
-           1]; 
+           0]; 
 
 % define input function shape  
 model.u = @(t) A0 * (t - t0)^alpha_1 *exp(-(t - t0)/beta_1); % gamma-variate input  
 % model.u = @(t) 10*rectangularPulse(0, 15, t);              % boxcar input 
 
 % define initial condition 
-model.x0 = [P0; L0]; 
-% model.x0 = [P0; L0; 0]; 
+% model.x0 = [P0; L0]; 
+model.x0 = [0; P0; L0]; 
 
 % define repetition time
 model.TR = 2; 
@@ -80,7 +81,7 @@ model.noise_type = 'Rician';
 % model.noise_type = 'None';
 
 % choose noise magnitude  
-model.noise_parameters = [0.01 0.01 0.01]; % sigma^2 values for the noise 
+model.noise_parameters = [0.1 0.1 0.1]; % sigma^2 values for the noise 
 
 % choose flip angle input matrix 
 %   This allows you to set linear equality constraints on the flip angles
@@ -97,7 +98,8 @@ model.noise_parameters = [0.01 0.01 0.01]; % sigma^2 values for the noise
 % 
 %   if you wish to compute all flip angles separately. 
 model.flip_angle_input_matrix = [1 0; 
-                                 0 1]; 
+                                 1 0;
+                                 0 1];  
                              
 % model.flip_angle_input_matrix = eye(model.m + model.n)                              
 
@@ -119,16 +121,16 @@ model = sensitivities(model);
 %% Design optimal flip angles
 
 % specify optimization start point and options for MATLAB optimization toolbox 
-initial_q_value = pi/2*ones(model.n, model.N);
-options = optimset('MaxFunEvals', 10000, 'MaxIter', 100, 'Display', 'iter');
+initial_q_value = 5*pi/180*ones(size(model.flip_angle_input_matrix, 2), model.N);
+options = optimset('MaxFunEvals', 10000, 'MaxIter', 500, 'Display', 'iter');
 
 % perform optimization 
 [thetas, ~, q_opt] = optimal_flip_angle_design(model, design_criterion, ...
     initial_q_value, options); 
-
+%%
 % plot optimal flip angles 
 figure 
-plot(thetas'.*180./pi, 'x-') 
+plot(q_opt'.*180./pi, 'x-') 
 title('Optimal flip angle scheme') 
 xlabel('acquisition number')
 ylabel('flip angle (degrees)')
@@ -136,7 +138,6 @@ legend('Pyr', 'Lac')
 % axis([1 model.N 0 100])
 
 thetas_opt = thetas(:, 1:2); 
-save('flip_angles.mat', 'thetas_opt')
 
 
 
@@ -178,6 +179,6 @@ plot(model.TR*(0:model.N-1), y', 'o-', (model.TR*(0:model.N-1)), y_fit')
 title('Simulated data') 
 xlabel('time (s)')
 ylabel('measured magnetization (au)')
-legend('Pyr', 'Lac', 'AIF')
+legend('Pyr', 'Lac', 'AIF', 'Pyr fit', 'Lac fit', 'AIF fit')
 
 
