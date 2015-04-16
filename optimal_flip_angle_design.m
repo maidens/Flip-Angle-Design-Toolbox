@@ -11,6 +11,11 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
     %   Flip Angle Design Toolbox 
     %   John Maidens (maidens@eecs.berkeley.edu)
     %   June 2014 
+    
+    % bounds to keep flip angles between 0 and 90 degrees 
+    lb = zeros(size(initial_q_value)); 
+    ub = pi/2*ones(size(initial_q_value)); 
+    
 
     display('===== Computing optimal flip angles =====')
        
@@ -28,7 +33,8 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
         %initial_thetas_value = ones(model.N, 3); 
         
         % perform optimization 
-        [q_opt, objective_value] = fminunc(obj, initial_q_value, options);
+        [q_opt, objective_value] = fmincon(obj, initial_q_value, ...
+                             [], [], [], [], lb, ub, [], options);
         thetas_opt = model.flip_angle_input_matrix * q_opt; 
         
     % Optimal flip angle design for Fisher information design criteria
@@ -72,8 +78,8 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
             end
             
             % solve optimization problem 
-            [q_opt, objective_value] = fminunc(obj_coarse, initial_q_value, ...
-                options);
+            [q_opt, objective_value] = fmincon(obj_coarse, initial_q_value, ...
+                 [], [], [], [], lb, ub, [], options);
             thetas_opt = model.flip_angle_input_matrix * q_opt;            
         else
             
