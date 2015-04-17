@@ -4,11 +4,13 @@ function tests = fisher_information_test
 end
 
 function setupOnce(testCase)
-    testCase.TestData.phi = compute_phi()
+  path(path, '../')
+  testCase.TestData.phi = compute_phi(); 
 end
 
 function teardownOnce(testCase)
   clear testCase.TestData.phi
+  rmpath('../')
 end
 
 % set tolerance for tests 

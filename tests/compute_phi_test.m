@@ -4,11 +4,13 @@ tests = functiontests(localfunctions);
 end
 
 function setupOnce(testCase)
+  path(path, '../')
   testCase.TestData.phi = compute_phi(); 
 end
 
 function teardownOnce(testCase)
   clear testCase.TestData.phi
+  rmpath('../')
 end
 
 % set tolerance for tests 

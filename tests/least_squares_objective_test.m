@@ -1,5 +1,5 @@
 % set up tests
-function tests = trajectories_test
+function tests = least_squares_objective_test
 tests = functiontests(localfunctions);
 end
 
@@ -16,7 +16,7 @@ function eps = epsilon()
   eps = 1e-5;
 end
 
-function testRandomModel(testCase)
+function testEqualOutputs(testCase)
 
     % generate random 2D model
     A = randn(2, 2) - eye(2); 
