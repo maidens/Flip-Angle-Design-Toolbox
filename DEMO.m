@@ -13,8 +13,6 @@ clc
 check_system_requirements(); 
 
 
-
-
 %% Specify system model 
 
 % initialize model object 
@@ -29,13 +27,13 @@ syms P0 L0
 
 % parameters of interest 
 % (those for which we wish to compute an estimate with minimal variance) 
-model.parameters_of_interest = [kPL kTRANS]; 
+model.parameters_of_interest                = [kPL  kTRANS]; 
 model.parameters_of_interest_nominal_values = [0.02 0.04]; 
 
 % nuisance parameters
 % (those parameters that are unknown but whose estimates we only care about
 % insofar as they allow us to estamate the parameters of interest) 
-model.nuisance_parameters = [alpha_1 beta_1 A0];
+model.nuisance_parameters                = [alpha_1 beta_1 A0];
 model.nuisance_parameters_nominal_values = [2       5      1 ]; 
 
 % known parameters
@@ -117,28 +115,32 @@ model = discretize(model);
 model = sensitivities(model);  
 
 
-
 %% Design optimal flip angles
 
 % specify optimization start point and options for MATLAB optimization toolbox 
 initial_q_value = 5*pi/180*ones(size(model.flip_angle_input_matrix, 2), model.N);
-options = optimset('MaxFunEvals', 10000, 'MaxIter', 500, 'Display', 'iter');
+options = optimset('MaxFunEvals', 5000, 'MaxIter', 500, 'Display', 'iter');
+
+% specify regularization parameter
+% larger values of lambda lead to smoother flip angle sequence 
+% set lambda = 0 for unregularized optimization 
+lambda = 0.1; 
 
 % perform optimization 
-[thetas, ~, q_opt] = optimal_flip_angle_design(model, design_criterion, ...
-    initial_q_value, options); 
-%%
-% plot optimal flip angles 
+[thetas, ~, q_opt] = optimal_flip_angle_design_regularized(model, design_criterion, ...
+    initial_q_value, lambda, options); 
+
+
+%% Plot optimized flip angles 
 figure 
 plot(q_opt'.*180./pi, 'x-') 
-title('Optimal flip angle scheme') 
+title('Optimized flip angle sequence') 
 xlabel('acquisition number')
 ylabel('flip angle (degrees)')
 legend('Pyr', 'Lac')
 % axis([1 model.N 0 100])
 
 thetas_opt = thetas(:, 1:2); 
-
 
 
 %% Generate simulated data from model 
@@ -155,8 +157,6 @@ ylabel('measured magnetization (au)')
 legend('Pyr', 'Lac', 'AIF')
 
 
-
-
 %% Estimate model parameters from simulated data 
 
 % choose loss function for parameter fit 
@@ -169,6 +169,7 @@ goodness_of_fit_criterion = 'maximum-likelihood';
 
 
 %% Plot results of estimate 
+
 model.parameters_of_interest_nominal_values = parameters_of_interest_est; 
 model.nuisance_parameters_nominal_values = nuisance_parameters_est; 
 model = discretize(model); 
@@ -176,9 +177,9 @@ model = discretize(model);
 
 figure
 plot(model.TR*(0:model.N-1), y', 'o-', (model.TR*(0:model.N-1)), y_fit')
-title('Simulated data') 
+title('Model fit to simulated data') 
 xlabel('time (s)')
 ylabel('measured magnetization (au)')
-legend('Pyr', 'Lac', 'AIF', 'Pyr fit', 'Lac fit', 'AIF fit')
+legend('Pyr data', 'Lac data', 'AIF data', 'Pyr fit', 'Lac fit', 'AIF fit')
 
 

@@ -1,5 +1,5 @@
-function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model, ...
-    design_criterion, initial_q_value, options)
+function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design_regularized(model, ...
+    design_criterion, initial_q_value, lambda, options)
     %FUNCTION OPTIMAL_FLIP_ANGLE_DESIGN performs numerical optimization to generate optimal flip angle scheme
     %   Choice of design criteria: 
     %       * 'totalSNR'  (maximize sum of state and input variables over all time) 
@@ -14,7 +14,8 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
     
     % bounds to keep flip angles between 0 and 90 degrees 
     lb = zeros(size(initial_q_value)); 
-    ub = pi/2*ones(size(initial_q_value)); 
+    ub = [pi/2*ones(size(initial_q_value))]; 
+    % ub = pi/2*ones(size(initial_q_value)); 
     
 
     display('===== Computing optimal flip angles =====')
@@ -57,7 +58,7 @@ function [thetas_opt, objective_value, q_opt] = optimal_flip_angle_design(model,
             % define objective function 
             if strcmp(design_criterion,'D-optimal')
                 obj_coarse = @(q) ...
-                    -log(abs(det(fisher_information(model.flip_angle_input_matrix*q, model, phi)))); 
+                    -log(abs(det(fisher_information(model.flip_angle_input_matrix*q, model, phi)))) + lambda*norm(reshape(q(:, 2:end) - q(:, 1:end-1), 2*model.N-2, 1), 2)   ; 
             elseif strcmp(design_criterion,'E-optimal')
                 obj_coarse = @(q) ...
                     -min(eig(fisher_information(model.flip_angle_input_matrix*q, model, phi)));
