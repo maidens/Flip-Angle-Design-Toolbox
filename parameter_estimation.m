@@ -31,13 +31,13 @@ function [parameters_of_interest_est, nuisance_parameters_est] ...
         if strcmp(model.noise_type, 'Rician')
             
             % perform maximum-likelihood fit 
-            options = optimset('MaxFunEvals', 5000, 'MaxIter', 5000); 
+            options = optimoptions('fminunc', 'MaxFunEvals', 5000, ...
+                'MaxIter', 5000, 'Algorithm', 'quasi-newton');
             obj = @(p) negative_log_likelihood_rician(p, y, thetas, model);
             
             % initial point 
             p_init =  [model.parameters_of_interest_nominal_values, ...
                 model.nuisance_parameters_nominal_values]; 
-            val_init = obj(p_init)
             p_opt = fminunc(obj, p_init, options);
 
             % unpack estimates 
