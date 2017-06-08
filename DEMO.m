@@ -33,13 +33,13 @@ model.parameters_of_interest_nominal_values = [0.02 0.04];
 % nuisance parameters
 % (those parameters that are unknown but whose estimates we only care about
 % insofar as they allow us to estamate the parameters of interest) 
-model.nuisance_parameters                = [alpha_1 beta_1 A0];
-model.nuisance_parameters_nominal_values = [2       5      1 ]; 
+model.nuisance_parameters                = [];
+model.nuisance_parameters_nominal_values = []; 
 
 % known parameters
 % (those whose values are assumed to be known constants) 
-model.known_parameters       = [R1P  R1L  t0 P0 L0 ]; 
-model.known_parameter_values = [1/30 1/30  0  0  0 ];  
+model.known_parameters       = [R1P  R1L  t0 P0 L0 alpha_1 beta_1 A0]; 
+model.known_parameter_values = [1/30 1/30  0  0  0 2       5      1 ];  
 
 % define system matrices for differential eq. 
 %   dx/dt = A*x(t) + B*u(t)
